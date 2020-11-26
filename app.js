@@ -9,10 +9,10 @@ app.get("/", (req,res) => {
     res.sendFile(__dirname + "/index.html");
 })
 
-app.get("/yarn", (request, response) => {
+app.get("/yarn", (req, res) => {
     const data = fs.readFileSync("yarn.json", "utf8");
     let yarns = JSON.parse(data);
-    response.send(yarns);
+    res.send(yarns);
 })
 
 app.get("/yarn/:id", (req,res) => {
@@ -27,7 +27,9 @@ app.get("/yarn/:id", (req,res) => {
 
 app.post("/yarn", jsonParser, (req,res) => {
 
-    if(!req.body) res.status(404).send();
+    if(!req.body) {
+        res.status(404).send();
+    }
 
     try {
         let yarn = createYarn(req.body);
@@ -49,13 +51,15 @@ app.delete("/yarn/:id", (req,res) => {
 })
 
 app.put("/yarn", jsonParser, (req,res) => {
-    if(!req.body) res.status(404).send();
+    if(!req.body) {
+        res.status(404).send();
+    }
+
     try {
         let yarn = updateYarn(req.body);
     } catch (error) {
         res.sendStatus(404);
     }
-
 });
 
 app.listen(3000,function(){

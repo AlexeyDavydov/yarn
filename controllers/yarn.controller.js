@@ -2,7 +2,7 @@ exports.getYarnById = function(id) {
     const data = fs.readFileSync("yarn.json", "utf8");
     let yarns = JSON.parse(data);
     
-    let yarn =  yarns.find(function(item){
+    let yarn = yarns.find(function(item){
         if (item.id == id) return true;
     })   
 
@@ -13,7 +13,7 @@ exports.deleteYarn = function(id){
     const data = fs.readFileSync("yarn.json", "utf8");
     let yarns = JSON.parse(data);
 
-   let index =  yarns.findIndex(function(item){
+   let index = yarns.findIndex(function(item){
         if (item.id == id) return true;
     })    
    
@@ -52,8 +52,13 @@ exports.updateYarn =function(body){
 exports.createYarn = function(body){
     let colourYarn = body.colour;
     let firmaYarn = body.firma;
-    let articulYarn =body.articul;
-    let yarn = {firma:firmaYarn, articul:articulYarn, colour:colourYarn};
+    let articulYarn = body.articul;
+
+    let yarn = {
+        firma:firmaYarn, 
+        articul:articulYarn, 
+        colour:colourYarn
+    };
 
     const data = fs.readFileSync("yarn.json", "utf8");
     let yarns = JSON.parse(data);
