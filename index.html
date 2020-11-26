@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Список пряжи</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" /> -->
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Список пряжи</h2>
+        <div class="row">
+            <div class="col-md">
+                <form name="userForm">
+                    <input type="hidden" name="id"  />
+                    <div class="form-group">
+                        <label for="name">Артикул:</label>
+                        <input class="form-control" name="articulYarn" />
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Цвет:</label>
+                        <input class="form-control" name="colourYarn" />
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Фирма:</label>
+                        <input class="form-control" name="firmaYarn" />
+                    </div>
+                    <div class="panel-body">
+                        <button type="submit" class="btn btn-sm btn-primary">Сохранить</button>
+                        <a id="reset" class="btn btn-sm btn-primary">Сбросить</a>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md"></div>
+        </div>
+        <br>
+        <table class="table table-condensed table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Артикул</th>
+                    <th>Цвет</th>
+                    <th>Фирма</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+  
+    <script>
+        // Получение всего товара
+        function GetYarns() {
+            $.ajax({
+                url: "/yarn",
+                type: "GET",
+                contentType: "application/json",
+                success: function (yarns) {
+                    var rows = "";
+                    $.each(yarns, function (index, yarn) {
+                        // добавляем полученные элементы в таблицу
+                        rows += row(yarn);
+                    })
+                    $("table tbody").append(rows);
+                 }
+            });
+        }
+       
+        // Получение моточка пряжи
+        function GetYarn(id) {
+            $.ajax({
+                url: "/yarns"+id,
+                type: "GET",
+                contentType: "application/json",
+                success: function (yarn) {
+                    var form = document.forms["userForm"];
+                    form.elements["id"].value = yarn.id;
+                    form.elements["firmaYarn"].value = yarn.firma;
+                    form.elements["articulYarn"].value = yarn.articul;
+                    form.elements["colourYarn"].value = yarn.colour;
+                }
+            });
+        }
+        // Добавление моточка пряжи
+        function CreateYarn(firmaYarn, colourYarn, articulYarn) {
+            $.ajax({
+                url: "/yarn",
+                contentType: "application/json",
+                method: "POST",
+                data: JSON.stringify({
+                    firma: firmaYarn,
+                   articul: articulYarn,
+                   colour: colourYarn
+                }),
+                success: function (yarn) {
+                    reset();
+                    $("table tbody").append(row(yarn));
+                }
+            })
+        }
+        // Изменение пользователя
+        function EditYarn(firmaYarn, colourYarn, articulYarn, idYarn) {
+            $.ajax({
+                url: "/yarn",
+                contentType: "application/json",
+                method: "PUT",
+                data: JSON.stringify({
+                    firma: firmaYarn,
+                   articul: articulYarn,
+                   colour: colourYarn,
+                   id: idYarn
+                }),
+                success: function (yarn) {
+                    reset();
+                    $("tr[data-rowid='" + yarn.id + "']").replaceWith(row(yarn));
+                }
+            })
+        }
+  
+        // сброс формы
+        function reset() {
+            var form = document.forms["userForm"];
+            form.reset();
+            form.elements["id"].value = 0;
+        }
+  
+        // Удаление пользователя
+        function DeleteUser(id) {
+            $.ajax({
+                url: "/yarn/"+id,
+                contentType: "application/json",
+                method: "DELETE",
+                success: function (yarn) {
+                    console.log(yarn);
+                    $("tr[data-rowid='" + yarn.id + "']").remove();
+                }
+            })
+        }
+        // создание строки для таблицы
+        var row = function (yarn) {
+            return "<tr data-rowid='" + yarn.id + "'><td>" + yarn.id + "</td>" +
+                   "<td>" + yarn.articul + "</td> <td>" + yarn.colour + "</td>" +
+                   "<td>" + yarn.firma + "</td>" +
+                   "<td><a class='editLink' data-id='" + yarn.id + "'>Изменить</a> | " +
+                    "<a class='removeLink' data-id='" + yarn.id + "'>Удалить</a></td></tr>";
+        }
+        // сброс значений формы
+        $("#reset").click(function (e) {
+  
+            e.preventDefault();
+            reset();
+        })
+  
+        // отправка формы
+        $("form").submit(function (e) {
+            e.preventDefault();
+            var id = this.elements["id"].value
+            var firmaYarn = this.elements["firmaYarn"].value;
+            var colourYarn = this.elements["colourYarn"].value;
+            var articulYarn = this.elements["articulYarn"].value;
+            
+            if (!id)
+                CreateYarn(firmaYarn, colourYarn, articulYarn);
+            else
+                EditYarn(firmaYarn, colourYarn, articulYarn,id);
+        });
+  
+        // нажимаем на ссылку Изменить
+        $("body").on("click", ".editLink", function () {
+            var id = $(this).data("id");
+            GetUser(id);
+        })
+        // нажимаем на ссылку Удалить
+        $("body").on("click", ".removeLink", function () {
+            var id = $(this).data("id");
+            DeleteUser(id);
+        })
+  
+        // Получение одного пользователя
+        function GetUser(id) {
+            $.ajax({
+                url: "/yarn/"+id,
+                type: "GET",
+                contentType: "application/json",
+                success: function (yarn) {
+                  
+                    var form = document.forms["userForm"];
+                    console.log(form);
+                    form.elements["id"].value = yarn.id;
+                    form.elements["firmaYarn"].value = yarn.firma;
+                    form.elements["articulYarn"].value = yarn.articul;
+                    form.elements["colourYarn"].value = yarn.colour;
+                }
+            });
+        }
+        // загрузка пользователей
+        GetYarns();
+  
+    </script>
+</body>
+</html>
