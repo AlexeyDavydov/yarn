@@ -1,8 +1,7 @@
 const express = require("express");
 const fs = require ("fs");
 const parser = require("body-parser");
-const { request } = require("http");
-const { response } = require("express");
+const { getYarnById, deleteYarn, updateYarn, createYarn } = require("./controllers/yarn.controller");
 const app = express();
 const jsonParser = parser.json();
 
@@ -18,15 +17,8 @@ app.get("/yarn", (request, response) => {
 
 app.get("/yarn/:id", (req,res) => {
     let id = req.params.id;
-    const data = fs.readFileSync("yarn.json", "utf8");
-    let yarns = JSON.parse(data);
-    
-    let yarn =  yarns.find(function(item){
-        if (item.id == id) return true;
-    })    
 
-    
-    console.log(yarn);
+    const yarn = getYarnById(id)
     if (yarn) {
         res.send(yarn);
     }
@@ -35,69 +27,35 @@ app.get("/yarn/:id", (req,res) => {
 
 app.post("/yarn", jsonParser, (req,res) => {
 
-    if(!req.body) res.status(404).send;
-    let colourYarn = req.body.colour;
-    let firmaYarn = req.body.firma;
-    let articulYarn = req.body.articul;
-    let yarn = {firma:firmaYarn, articul:articulYarn, colour:colourYarn};
+    if(!req.body) res.status(404).send();
 
-    const data = fs.readFileSync("yarn.json", "utf8");
-    let yarns = JSON.parse(data);
-
-    let id = yarns.length;
-    id = id+1;
-    yarn.id=id;
-    yarns.push(yarn);
-
-    let dataNew = JSON.stringify(yarns);
-    fs.writeFileSync("yarn.json",dataNew);
-    res.send(yarn);
+    try {
+        let yarn = createYarn(req.body);
+        res.send(yarn);
+    } catch (error) {
+        res.sendStatus(404);
+    }
+    
 })
 
 app.delete("/yarn/:id", (req,res) => {
     let id = req.params.id;
-    const data = fs.readFileSync("yarn.json", "utf8");
-    let yarns = JSON.parse(data);
-
-
-   let index =  yarns.findIndex(function(item){
-        if (item.id == id) return true;
-    })    
-   
-    if (index> -1) {
-        let yarn = yarns.splice(index,1);
-       
-        let dataNew = JSON.stringify(yarns);
-        fs.writeFileSync("yarn.json",dataNew);
-        res.send(yarn); 
+    try {
+        let yarn = deleteYarn(id)
+        res.send(yarn);
+    } catch (err){
+        res.sendStatus(400);
     }
 })
 
 app.put("/yarn", jsonParser, (req,res) => {
-    if(!req.body) res.status(404).send;
-    let colourYarn = req.body.colour;
-    let firmaYarn = req.body.firma;
-    let articulYarn = req.body.articul;
-    let idYarn = req.body.id;
+    if(!req.body) res.status(404).send();
+    try {
+        let yarn = updateYarn(req.body);
+    } catch (error) {
+        res.sendStatus(404);
+    }
 
-    const data = fs.readFileSync("yarn.json", "utf8");
-    let yarns = JSON.parse(data);
-
-    let yarn =  yarns.find(function(item){
-        if (item.id == idYarn) return true;
-    })    
-    console.log('yarn');
-    console.log(yarn);
-
-
-    if(yarn) {
-        yarn.colour = colourYarn;
-        yarn.articul = articulYarn;
-        yarn.firma = firmaYarn;
-        let dataNew = JSON.stringify(yarns);
-            fs.writeFileSync("yarn.json",dataNew);
-            res.send(yarn); 
-    } else res.sendStatus(404);  
 });
 
 app.listen(3000,function(){
