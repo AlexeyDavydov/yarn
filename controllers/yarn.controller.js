@@ -1,3 +1,4 @@
+const fs = require ("fs");
 exports.getYarnById = function(id) {
     const data = fs.readFileSync("yarn.json", "utf8");
     let yarns = JSON.parse(data);
